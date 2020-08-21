@@ -432,4 +432,5 @@ function interactive_items(){
 }
 else{
     document.getElementById("page").style.opacity = 1.0;
+    document.getElementById("page").classList.add('noanimation');
 }
