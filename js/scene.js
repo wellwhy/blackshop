@@ -430,3 +430,6 @@ function interactive_items(){
 
 
 }
+else{
+    document.getElementById("page").style.opacity = 1.0;
+}
