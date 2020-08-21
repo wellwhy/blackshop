@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<style>
+body{
+    background: #000000;
+}
+* {
+   cursor: url('cursor.png'), pointer;
+}
+.three_js_container_1 {
+    image-rendering: pixelated;
+    pointer-events: none;
+    position: absolute;
+    top:0px;
+    left:0px;
+    right:0px;
+    bottom:0px;
+    height: 10px;
+    width: 10px;
+    z-index: -1;
+}
+</style>
+
+<html>
+<body onresize="repositionElements()">
+
+<div id="three_js_container_1" class="three_js_container_1"></div>
+
+</body>
+</html>
+
+<script>
+repositionElements();
+function repositionElements(){
+document.getElementById("three_js_container_1").style.width = "" + window.innerWidth + "px";
+document.getElementById("three_js_container_1").style.height = "" + window.innerHeight + "px";
+}
+</script>
+
+<script src="js/three.js"></script>
+<script src="js/GLTFLoader.js"></script>
+<script src="js/DDSLoader.js"></script>
+
+<script type="x-shader/x-vertex" id="vertexShader">
+    varying vec3 vUv;
+    void main(){
+        vec4 modelViewPosition = modelViewMatrix * vec4(position, 1.0);
+        //modelViewPosition.xyz = floor(modelViewPosition.xyz * 40.0) / 40.0;
+        //vec4 snapToWorldPoint = modelViewPosition;
+        //modelViewPosition.xyz = snapToWorldPoint.xyz / snapToWorldPoint.w;
+		//modelViewPosition.x = floor(260.0 * modelViewPosition.x) / 260.0;
+		//modelViewPosition.y = floor(220.0 * modelViewPosition.y) / 220.0;
+        //modelViewPosition.xyz *= snapToWorldPoint.w;
+        gl_Position = projectionMatrix * modelViewPosition;
+        vec4 snapToPixel = gl_Position;
+        gl_Position.xyz = snapToPixel.xyz / snapToPixel.w;
+		gl_Position.x = floor(120.0 * gl_Position.x) / 120.0;
+		gl_Position.y = floor(100.0 * gl_Position.y) / 100.0;
+        gl_Position.xyz *= snapToPixel.w;
+        
+        vUv = vec3(uv * gl_Position.w, gl_Position.w );
+        float distance = length(modelViewPosition);
+        //vUv *= distance + (gl_Position.w) / distance / 2.0;
+    }
+</script>
+
+<script type="x-shader/x-fragment" id="fragmentShader">
+    uniform sampler2D texture1;
+    varying vec3 vUv;
+
+    void main(){
+        vec4 color = texture2D(texture1, vUv.xy / vUv.z);
+        if(color.a < 0.9)
+            discard;
+        gl_FragColor = mix(color,vec4(0,0,0,1),.3);
+        //gl_FragColor = texture2D(texture1,vUv);
+    }
+</script>
+
+<script>
+var isMobile = false; //initiate as false
+// device detection
+if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|ipad|iris|kindle|Android|Silk|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(navigator.userAgent) 
+    || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(navigator.userAgent.substr(0,4))) { 
+    isMobile = true;
+}
+
+var clock = new THREE.Clock();
+var scene = new THREE.Scene();
+var container = document.getElementById("three_js_container_1");
+var camera = new THREE.PerspectiveCamera( 59, container.offsetWidth/container.offsetHeight, 0.00001, 10000 );
+const renderer = new THREE.WebGLRenderer({container,alpha: true,antialias:false});
+renderer.setClearColor( 0x000000 ); 
+var loader = new THREE.GLTFLoader();
+if(!isMobile)
+renderer.setPixelRatio( window.devicePixelRatio * 0.25 );
+else
+renderer.setPixelRatio(0.5); //not exact but most devices 2-3x smaller
+var light = new THREE.HemisphereLight( 0xffffff, 0xffffff, 1 );
+renderer.gammaOutput = true;
+// scene.fog = new THREE.Fog(0xff0000,0.1,2000);
+//scene.add( light );
+
+var skyGeo = new THREE.SphereGeometry(500, 25, 25);
+var skytex  = new THREE.TextureLoader().load( "skytex.png" );
+skytex.minFilter = THREE.NearestFilter;
+skytex.magFilter = THREE.NearestFilter;
+skytex.encoding = THREE.sRGBEncoding;
+var skymat = new THREE.MeshBasicMaterial( { map: skytex} );
+skymat.side = THREE.DoubleSide;
+var sky = new THREE.Mesh(skyGeo, skymat);
+skyGeo.frustumCulled = false;
+scene.add(sky);
+
+// {
+//   const loader2 = new THREE.CubeTextureLoader();
+//   const texture = loader2.load([
+//     'spacecubemap3/x+.png',
+//     'spacecubemap3/x-.png',
+//     'spacecubemap3/y+.png',
+//     'spacecubemap3/y-.png',
+//     'spacecubemap3/z+.png',
+//     'spacecubemap3/z-.png',
+//   ]);
+//   scene.background = texture;
+// }
+var ps1_shader_material = new THREE.ShaderMaterial({ 
+    skinning: true,
+    uniforms: { texture1: {type: "t", value: null} },
+    vertexShader: document.getElementById('vertexShader').textContent,
+    fragmentShader: document.getElementById('fragmentShader').textContent,
+    });
+
+
+var model_3;
+loader.load( 'city_no_textures.glb', async ( gltf ) => {
+    //const textures = await gltf.parser.getDependencies( 'texture' );
+    // console.log(textures);
+    load_txtrs();
+    console.log(txtrs);
+    model_3 = gltf.scene || gltf.scenes[0];
+    console.log(model_3);
+
+    for(var i = 0; i < 5; i++){
+        var currChild = model_3.children[i];
+        var currChildName = currChild.name;
+        console.log( currChildName);
+
+        switch(currChildName){
+            case "Trees":
+                currChild.material = new THREE.ShaderMaterial({ 
+                    uniforms: { texture1: {type: "t", value: null} },
+                    vertexShader: document.getElementById('vertexShader').textContent,
+                    fragmentShader: document.getElementById('fragmentShader').textContent,
+                    });
+                    currChild.material.side = THREE.DoubleSide;
+                    currChild.material.uniforms.texture1.value = txtrs[0];
+                break;
+            case "Hut":
+                for(var j = 0; j < 2; j++){
+                    var currGroupChild = currChild.children[j];
+                    currGroupChild.material = new THREE.ShaderMaterial({ 
+                        uniforms: { texture1: {type: "t", value: null} },
+                        vertexShader: document.getElementById('vertexShader').textContent,
+                        fragmentShader: document.getElementById('fragmentShader').textContent,
+                        });
+                        currGroupChild.material.side = THREE.DoubleSide;
+                        currGroupChild.material.uniforms.texture1.value = txtrs[1];
+                }
+                break;
+            case "SkrapeTop":
+            currChild.material = new THREE.ShaderMaterial({ 
+                    uniforms: { texture1: {type: "t", value: null} },
+                    vertexShader: document.getElementById('vertexShader').textContent,
+                    fragmentShader: document.getElementById('fragmentShader').textContent,
+                    });
+                    currChild.material.side = THREE.DoubleSide;
+                    currChild.material.uniforms.texture1.value = txtrs[2];
+                break;
+            case "Buildings":
+            currChild.material = new THREE.ShaderMaterial({ 
+                    uniforms: { texture1: {type: "t", value: null} },
+                    vertexShader: document.getElementById('vertexShader').textContent,
+                    fragmentShader: document.getElementById('fragmentShader').textContent,
+                    });
+                    currChild.material.side = THREE.DoubleSide;
+                    currChild.material.uniforms.texture1.value = txtrs[3];
+                break;
+            case "Skraper":
+            currChild.material = new THREE.ShaderMaterial({ 
+                    uniforms: { texture1: {type: "t", value: null} },
+                    vertexShader: document.getElementById('vertexShader').textContent,
+                    fragmentShader: document.getElementById('fragmentShader').textContent,
+                    });
+                    currChild.material.side = THREE.DoubleSide;
+                    currChild.material.uniforms.texture1.value = txtrs[4];
+                break;
+        }
+    }
+
+
+
+//     var tex_i = [5,0,0,0,0,0,4,2,3];
+//     var i = 0;
+//     gltf.scene.traverse((object) => {
+//   if (object.isMesh) {
+//     object.frustumCulled = false;
+//     object.material.map.minFilter = THREE.NearestFilter;
+//     object.material.map.magFilter = THREE.NearestFilter;
+//     var temp = object.material.map;
+//     object.material = new THREE.ShaderMaterial({ 
+//     uniforms: { texture1: {type: "t", value: null} },
+//     vertexShader: document.getElementById('vertexShader').textContent,
+//     fragmentShader: document.getElementById('fragmentShader').textContent,
+//     });
+//     object.material.side = THREE.DoubleSide;
+//     console.log(tex_i[i]);
+//     object.material.uniforms.texture1.value = textures[tex_i[i]];
+//     i++;
+// }
+// });
+    // gltf.animations.forEach( ( clip ) => {
+
+    //     mixer.clipAction( clip ).play();
+        
+    // } );
+    
+    // model_1.position.x = -.5;
+    // model_1.position.y = -1.5;
+    // model_1.rotation.y = Math.random() * 360;
+
+    scene.add( model_3 );
+}, undefined, function ( error ) {
+	console.error( error );
+} );
+
+var model_2;
+var mixer2;
+var action2;
+loader.load( 'fixedwhitethingdoor2.glb', function ( gltf ) {
+    model_2 = gltf.scene;
+    //console.log(model_1);
+    var mesh = model_2.children[0].children[1];
+
+    gltf.scene.traverse((object) => {
+  if (object.isMesh) {
+    object.frustumCulled = false;
+    object.material.map.minFilter = THREE.NearestFilter;
+    object.material.map.magFilter = THREE.NearestFilter;
+    var temp = object.material.map;
+    //object.material = ps1_shader_material; 
+    object.material = new THREE.MeshBasicMaterial( {skinning:true});
+    object.material.map = temp;
+    object.material.side = THREE.DoubleSide;
+
+    const vertexShaderReplacement = [
+        {
+            from: '#include <project_vertex>',
+                to: `
+                vec4 mvPosition = vec4( transformed, 1.0 );
+                #ifdef USE_INSTANCING
+                    mvPosition = instanceMatrix * mvPosition;
+                #endif
+                mvPosition = modelViewMatrix * mvPosition;
+                gl_Position = projectionMatrix * mvPosition;
+                        vec4 snapToPixel = gl_Position;
+                        gl_Position.xyz = snapToPixel.xyz / snapToPixel.w;
+                        gl_Position.x = floor(120.0 * gl_Position.x) / 120.0;
+                        gl_Position.y = floor(100.0 * gl_Position.y) / 100.0;
+                        gl_Position.xyz *= snapToPixel.w;
+            `,
+        },
+    ];
+    object.material.onBeforeCompile = (shader) => {
+    vertexShaderReplacement.forEach((rep) => {
+        shader.vertexShader = shader.vertexShader.replace(rep.from, rep.to);
+    });
+    };
+  }
+});
+    // mesh.geometry.boundingBox = new THREE.Box3(-1000,1000);
+    // helper = new THREE.SkeletonHelper(model_1); //Show skeleton
+    // helper.material.lineWidth = 1;
+    // helper.visible = true;
+    // helper.frustumCulled = false;
+    mixer2 = new THREE.AnimationMixer( model_2 );
+    action2 = mixer2.clipAction( gltf.animations[ 5 ] );
+    action2.setLoop( THREE.LoopOnce );
+    // gltf.animations.forEach( ( clip ) => {
+
+    //     mixer.clipAction( clip ).play();
+        
+    // } );
+    
+    // model_1.position.x = -.5;
+    // model_1.position.y = -1.5;
+    // model_1.rotation.y = Math.random() * 360;
+
+    scene.add( model_2 );
+    // scene.add(helper);
+}, undefined, function ( error ) {
+	console.error( error );
+} );
+
+// camera.position.z = 100;
+// camera.position.y = 50;
+var model_1;
+var mixer;
+var skeleton_1;
+var helper_2;
+var clawaction;
+loader.load( 'final_animation_claw.fbx.glb', function ( gltf ) {
+    model_1 = gltf.scene;
+    //console.log(model_1);
+    var mesh = model_1.children[0].children[1];
+
+    gltf.scene.traverse((object) => {
+  if (object.isMesh) {
+    object.frustumCulled = false;
+    object.material.map.minFilter = THREE.NearestFilter;
+    object.material.map.magFilter = THREE.NearestFilter;
+    var temp = object.material.map;
+    //object.material = ps1_shader_material; 
+    object.material = new THREE.MeshBasicMaterial( {skinning:true});
+    object.material.map = temp;
+    object.material.side = THREE.DoubleSide;
+
+    const vertexShaderReplacement = [
+        {
+            from: '#include <project_vertex>',
+                to: `
+                vec4 mvPosition = vec4( transformed, 1.0 );
+                #ifdef USE_INSTANCING
+                    mvPosition = instanceMatrix * mvPosition;
+                #endif
+                mvPosition = modelViewMatrix * mvPosition;
+                gl_Position = projectionMatrix * mvPosition;
+                        vec4 snapToPixel = gl_Position;
+                        gl_Position.xyz = snapToPixel.xyz / snapToPixel.w;
+                        gl_Position.x = floor(100.0 * gl_Position.x) / 100.0;
+                        gl_Position.y = floor(80.0 * gl_Position.y) / 80.0;
+                        gl_Position.xyz *= snapToPixel.w;
+            `,
+        },
+    ];
+    object.material.onBeforeCompile = (shader) => {
+    vertexShaderReplacement.forEach((rep) => {
+        shader.vertexShader = shader.vertexShader.replace(rep.from, rep.to);
+    });
+    };
+  }
+});
+    // mesh.geometry.boundingBox = new THREE.Box3(-1000,1000);
+    // helper = new THREE.SkeletonHelper(model_1); //Show skeleton
+    // helper.material.lineWidth = 1;
+    // helper.visible = true;
+    // helper.frustumCulled = false;
+    mixer = new THREE.AnimationMixer( model_1 );
+    clawaction = mixer.clipAction( gltf.animations[ 7 ] );
+    clawaction.setLoop( THREE.LoopOnce );
+    // action.timeScale = 4;
+    // gltf.animations.forEach( ( clip ) => {
+
+    //     mixer.clipAction( clip ).play();
+        
+    // } );
+    
+    // model_1.position.x = -.5;
+    // model_1.position.y = -1.5;
+    // model_1.rotation.y = Math.random() * 360;
+
+    scene.add( model_1 );
+    // scene.add(helper);
+}, undefined, function ( error ) {
+	console.error( error );
+} );
+// var axesHelper = new THREE.AxesHelper( 500 );
+// axesHelper.position.x += 20;
+// axesHelper.position.z += 10;
+// axesHelper.position.y += 2;
+// scene.add( axesHelper );
+// scene.traverse( function( object ) {
+
+// object.frustumCulled = false;
+
+// } );
+// camera.position.y = 160;
+renderer.setSize(container.offsetWidth,container.offsetHeight);
+container.appendChild( renderer.domElement );
+var once = true;
+var onceanim = true;
+function animate() {
+    if(clawaction && action2 && onceanim){
+        clawaction.play();
+        action2.play();
+        onceanim = false;
+    }
+    if(model_1 && once){
+        once = false;
+        console.log("once");
+        model_1.children[0].children[1].skeleton.bones[0].add(camera);
+        scene.add(model_1);
+        camera.rotation.y = 1.5708;
+        camera.position.x = .0001;
+        camera.position.y = .025;
+    }
+    var id = requestAnimationFrame( animate );
+    var worldpos = new THREE.Vector3();
+    camera.getWorldPosition(worldpos);
+    if(worldpos.x < -21.0 && worldpos.y > 154.0){ //stops animation when in black box
+        cancelAnimationFrame( id );
+        window.location.href = "store.html";
+    }
+    var delta = clock.getDelta();
+    if ( mixer ) mixer.update( delta );
+    if ( mixer2 ) mixer2.update( delta );
+    
+    renderer.render( scene, camera );
+}
+
+window.addEventListener( 'resize', onWindowResize, false );
+
+function onWindowResize(){
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    renderer.setSize( window.innerWidth, window.innerHeight );
+}
+animate();
+
+var txtrs;
+function load_txtrs(){
+    var trees = new THREE.TextureLoader().load( 'txtrs/tree.png' );
+        trees.wrapS = THREE.RepeatWrapping;
+        trees.wrapT = THREE.RepeatWrapping;
+        trees.minFilter = THREE.NearestFilter;
+        trees.magFilter = THREE.NearestFilter;
+
+    var hut = new THREE.TextureLoader().load( 'txtrs/hut.png' );
+        hut.wrapS = THREE.RepeatWrapping;
+        hut.wrapT = THREE.RepeatWrapping;
+        hut.minFilter = THREE.NearestFilter;
+        hut.magFilter = THREE.NearestFilter;
+
+    var skrapetop = new THREE.TextureLoader().load( 'txtrs/skrapetop.png' );
+        skrapetop.wrapS = THREE.RepeatWrapping;
+        skrapetop.wrapT = THREE.RepeatWrapping;
+        skrapetop.minFilter = THREE.NearestFilter;
+        skrapetop.magFilter = THREE.NearestFilter;
+
+    var buildings = new THREE.TextureLoader().load( 'txtrs/buildings.jpg' );
+        buildings.flipY = false;
+        buildings.wrapS = THREE.RepeatWrapping;
+        buildings.wrapT = THREE.RepeatWrapping;
+        buildings.minFilter = THREE.NearestFilter;
+        buildings.magFilter = THREE.NearestFilter;
+
+    var skraper = new THREE.TextureLoader().load( 'txtrs/skraperlower.png' );
+        skraper.wrapS = THREE.RepeatWrapping;
+        skraper.wrapT = THREE.RepeatWrapping;
+        skraper.minFilter = THREE.NearestFilter;
+        skraper.magFilter = THREE.NearestFilter;
+
+    txtrs = [trees, hut, skrapetop, buildings, skraper];
+    for(var i = 0; i < 5; i++){
+        txtrs[i].flipY = false;
+    }
+}
+</script>
